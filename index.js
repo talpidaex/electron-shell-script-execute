@@ -5,7 +5,7 @@ const BrowserWindow = require("electron").BrowserWindow;
 const electronIpcMain = require("electron").ipcMain;
 
 const nodePath = require("path");
-const nodeChildProcess = require("child_process");
+const { exec } = require("child_process");
 let window;
 let secondWindow;
 function createWindow() {
@@ -59,31 +59,49 @@ electronApp.on("window-all-closed", () => {
 });
 
 /** shell script compiler */
+// electronIpcMain.on("runScript", () => {
+//   // Windows
+//   let script = nodeChildProcess.spawn("cmd.exe", [
+//     "/c",
+//     "c:\\Users\\user\\Projects\\electron-fs\\dosyaTransfer.bat",
+//     "arg1",
+//     "arg2",
+//   ]);
+
+//   // MacOS & Linux
+//   // let script = nodeChildProcess.spawn('bash', ['test.sh', 'arg1', 'arg2']);
+
+//   console.log("PID: " + script.pid);
+
+//   script.stdout.on("data", (data) => {
+//     console.log("stdout: " + data);
+//   });
+
+//   script.stderr.on("data", (err) => {
+//     console.log("stderr: " + err);
+//   });
+
+//   script.on("exit", (code) => {
+//     console.log("Exit Code: " + code);
+//   });
+// });
+
+// Shell betiğini çalıştır
 electronIpcMain.on("runScript", () => {
-  // Windows
-  let script = nodeChildProcess.spawn("cmd.exe", [
-    "/c",
-    "c:\\Users\\user\\Projects\\electron-fs\\dosyaTransfer.bat",
-    "arg1",
-    "arg2",
-  ]);
-
-  // MacOS & Linux
-  // let script = nodeChildProcess.spawn('bash', ['test.sh', 'arg1', 'arg2']);
-
-  console.log("PID: " + script.pid);
-
-  script.stdout.on("data", (data) => {
-    console.log("stdout: " + data);
-  });
-
-  script.stderr.on("data", (err) => {
-    console.log("stderr: " + err);
-  });
-
-  script.on("exit", (code) => {
-    console.log("Exit Code: " + code);
-  });
+  exec(
+    "sh C:\\Users\\user\\Projects\\electron-fs\\transfer.sh",
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Hata oluştu: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`Hata çıktısı: ${stderr}`);
+        return;
+      }
+      console.log(`Başarıyla kopyalandı: ${stdout}`);
+    }
+  );
 });
 
 electronIpcMain.on("message-to-main", (event, data) => {
