@@ -45,3 +45,12 @@ contextBridge.exposeInMainWorld(
     },
   }
 );
+
+contextBridge.exposeInMainWorld("mainWindowApi", {
+  sendToSecondWindow: (channel, data) => {
+    ipcRenderer.send(channel, data);
+  },
+  receiveFromSecondWindow: (channel, func) => {
+    ipcRenderer.on(channel, (event, ...args) => func(...args));
+  },
+});

@@ -1,16 +1,15 @@
 "use strict";
 
 const electronApp = require("electron").app;
-const electronBrowserWindow = require("electron").BrowserWindow;
+const BrowserWindow = require("electron").BrowserWindow;
 const electronIpcMain = require("electron").ipcMain;
 
 const nodePath = require("path");
 const nodeChildProcess = require("child_process");
-
 let window;
-
+let secondWindow;
 function createWindow() {
-  const window = new electronBrowserWindow({
+  window = new BrowserWindow({
     x: 0,
     y: 0,
     width: 800,
@@ -20,6 +19,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       preload: nodePath.join(__dirname, "preload.js"),
+      devTools: true,
     },
   });
 
@@ -30,8 +30,26 @@ function createWindow() {
   return window;
 }
 
-electronApp.on("ready", () => {
-  window = createWindow();
+function createSecondWindow() {
+  secondWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: true,
+      preload: nodePath.join(__dirname, "preloadSecond.js"),
+      devTools: true,
+    },
+  });
+
+  secondWindow.loadFile("second.html").then(() => {
+    secondWindow.show();
+  });
+}
+
+electronApp.whenReady().then(() => {
+  createWindow();
+  createSecondWindow();
 });
 
 electronApp.on("window-all-closed", () => {
@@ -40,14 +58,7 @@ electronApp.on("window-all-closed", () => {
   }
 });
 
-electronApp.on("activate", () => {
-  if (electronBrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-// ---
-
+/** shell script compiler */
 electronIpcMain.on("runScript", () => {
   // Windows
   let script = nodeChildProcess.spawn("cmd.exe", [
@@ -73,4 +84,12 @@ electronIpcMain.on("runScript", () => {
   script.on("exit", (code) => {
     console.log("Exit Code: " + code);
   });
+});
+
+electronIpcMain.on("message-to-main", (event, data) => {
+  console.log("Received message in main :", data);
+});
+
+electronIpcMain.on("message-to-second", (event, data) => {
+  console.log("Received message in second :", data);
 });
